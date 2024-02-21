@@ -114,6 +114,46 @@ impl Params {
         };
         Ok(Self { inner: params })
     }
+
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    pub fn iter(&self) -> Iter<'_> {
+        Iter {
+            inner: self.inner.iter(),
+        }
+    }
+}
+
+pub struct Iter<'a> {
+    inner: std::slice::Iter<'a, ContentDescriptor>,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = &'a ContentDescriptor;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl IntoIterator for Params {
+    type Item = ContentDescriptor;
+
+    type IntoIter = std::vec::IntoIter<ContentDescriptor>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
 }
 
 impl<'de> Deserialize<'de> for Params {
