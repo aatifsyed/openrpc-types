@@ -67,6 +67,7 @@ pub struct ContentDescriptor {
 /// > The list can use the Reference Object to link to parameters that are defined by the Content Descriptor Object.
 /// > All optional params (content descriptor objects with “required”: false) MUST be positioned after all required params in the list.
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[serde(transparent)]
 pub struct Params {
     inner: Vec<ContentDescriptor>,
 }
