@@ -5,7 +5,6 @@
 use itertools::Itertools as _;
 use schemars::schema::Schema;
 use serde::{Deserialize, Serialize};
-use tap::Tap as _;
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -83,12 +82,13 @@ impl Params {
         let params = params.into_iter().collect::<Vec<_>>();
         let duplicates = params
             .iter()
-            .counts_by(|param| param.name.as_str())
-            .tap_mut(|counts| counts.retain(|_, count| *count > 1));
+            .map(|it| it.name.as_str())
+            .duplicates()
+            .collect::<Vec<_>>();
         if !duplicates.is_empty() {
             return Err(ParamListError(format!(
                 "The following parameter names are duplicated: [{}]",
-                duplicates.into_keys().join(", ")
+                duplicates.join(", ")
             )));
         }
         if let Some((first_opt_ix, first_opt_param)) =
