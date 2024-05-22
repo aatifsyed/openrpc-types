@@ -180,7 +180,8 @@ pub struct Method {
     pub name: String,
     /// > A list of tags for API documentation control.
     /// > Tags can be used for logical grouping of methods by resources or any other qualifier.
-    pub tags: Vec<ReferenceOr<Tag>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<ReferenceOr<Tag>>>,
     /// > A short summary of what the method does.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
