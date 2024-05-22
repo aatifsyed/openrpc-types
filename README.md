@@ -7,6 +7,8 @@ This library does NOT perform more complicated validation of the spec, including
 - unique error codes
 - reference idents
 
+`Link` objects are not currently supported.
+
 > When quoted, the specification will appear as blockquoted text, like so.
 
 <!-- cargo-rdme end -->
