@@ -5,6 +5,8 @@
 //! - unique error codes
 //! - reference idents
 //!
+//! `Link` objects are not currently supported.
+//!
 //! > When quoted, the specification will appear as blockquoted text, like so.
 
 use schemars::schema::Schema;
@@ -42,15 +44,17 @@ pub struct OpenRPC {
     /// > which provide connectivity information to a target server.
     /// > If the servers property is not provided, or is an empty array,
     /// > the default value would be a Server Object with a url value of `localhost`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub servers: Option<Vec<Server>>,
     /// > REQUIRED.
     /// > The available methods for the API.
     /// > While it is required, the array may be empty (to handle security filtering, for example).
     pub methods: Vec<Method>,
     /// > An element to hold various schemas for the specification.
-    #[serde(default)]
-    pub components: Components,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub components: Option<Components>,
     /// > Additional external documentation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_docs: Option<ExternalDocumentation>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -67,13 +71,17 @@ pub struct Info {
     pub title: String,
     /// > A verbose description of the application.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > A URL to the Terms of Service for the API.
     /// > MUST be in the format of a URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub terms_of_service: Option<Url>,
     /// > The contact information for the exposed API.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub contact: Option<Contact>,
     /// > The license information for the exposed API.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub license: Option<License>,
     /// > REQUIRED.
     /// > The version of the OpenRPC document
@@ -87,12 +95,15 @@ pub struct Info {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Contact {
     /// > The identifying name of the contact person/organization.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// > The URL pointing to the contact information.
     /// > MUST be in the format of a URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
     /// > The email address of the contact person/organization.
     /// > MUST be in the format of an email address.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -106,6 +117,7 @@ pub struct License {
     pub name: String,
     /// > A URL to the license used for the API.
     /// > MUST be in the format of a URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -124,12 +136,15 @@ pub struct Server {
     /// > Server Variables are passed into the Runtime Expression to produce a server URL.
     pub url: String,
     /// > A short summary of what the server is.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > An optional string describing the host designated by the URL.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > A map between a variable name and its value.
     /// > The value is passed into the Runtime Expression to produce a server URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub variables: Option<BTreeMap<String, ServerVariable>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -138,6 +153,7 @@ pub struct Server {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServerVariable {
     /// > An enumeration of string values to be used if the substitution options are from a limited set.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub r#enum: Option<Vec<String>>,
     /// > REQUIRED.
     /// > The default value to use for substitution,
@@ -146,6 +162,7 @@ pub struct ServerVariable {
     /// > because in those cases parameter values are optional.
     pub default: String,
     /// > An optional description for the server variable. GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -165,11 +182,14 @@ pub struct Method {
     /// > Tags can be used for logical grouping of methods by resources or any other qualifier.
     pub tags: Vec<ReferenceOr<Tag>>,
     /// > A short summary of what the method does.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > A verbose explanation of the method behavior.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > Additional external documentation for this method.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_docs: Option<ExternalDocumentation>,
     /// > REQUIRED.
     /// > A list of parameters that are applicable for this method.
@@ -180,22 +200,28 @@ pub struct Method {
     /// > The description of the result returned by the method.
     /// > If defined, it MUST be a Content Descriptor or Reference Object.
     /// > If undefined, the method MUST only be used as a notification.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<ContentDescriptor>,
     /// > Declares this method to be deprecated.
     /// > Consumers SHOULD refrain from usage of the declared method.
     /// > Default value is `false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub deprecated: Option<bool>,
     /// > An alternative servers array to service this method.
     /// > If an alternative servers array is specified at the Root level,
     /// > it will be overridden by this value.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub servers: Option<Vec<Server>>,
     /// > A list of custom application defined errors that MAY be returned.
     /// > The Errors MUST have unique error codes.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<ReferenceOr<Error>>>,
     // /// > A list of possible links from this method call.
     // pub links: Option<Vec<ReferenceOr<Link>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub param_structure: Option<ParamStructure>,
     /// > Array of Example Pairing Objects where each example includes a valid params-to-result Content Descriptor pairing.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub examples: Option<Vec<ReferenceOr<ExamplePairing>>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -208,12 +234,15 @@ pub struct ContentDescriptor {
     /// > If the content described is a method parameter assignable by-name, this field SHALL define the parameter’s key (ie name).
     pub name: String,
     /// > A short summary of the content that is being described.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > A verbose explanation of the content descriptor behavior.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > Determines if the content is a required field.
     /// > Default value is `false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<bool>,
     /// > REQUIRED.
     /// > Schema that describes the content.
@@ -227,6 +256,7 @@ pub struct ContentDescriptor {
     pub schema: Schema,
     /// > Specifies that the content is deprecated and SHOULD be transitioned out of usage.
     /// > Default value is `false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub deprecated: Option<bool>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -239,13 +269,16 @@ pub struct ExamplePairing {
     /// > REQUIRED Name for the example pairing.
     pub name: String,
     /// > A verbose explanation of the example pairing.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > Short description for the example pairing.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > REQUIRED Example parameters.
     pub params: Vec<ReferenceOr<Example>>,
     /// > Example result.
     /// > When undefined, the example pairing represents usage of the method as a notification.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<ReferenceOr<Example>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -260,20 +293,25 @@ pub struct ExamplePairing {
 #[serde(rename_all = "camelCase")]
 pub struct Example {
     /// Cannonical name of the example.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Short description for the example.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > A verbose explanation of the example.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > Embedded literal example.
     /// > The value field and externalValue field are mutually exclusive.
     /// > To represent examples of media types that cannot naturally represented in JSON,
     /// > use a string value to contain the example, escaping where necessary.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub value: Option<Value>,
     /// > A URL that points to the literal example.
     /// > This provides the capability to reference examples that cannot easily be included in JSON documents.
     /// > The value field and externalValue field are mutually exclusive.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_value: Option<String>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -297,6 +335,7 @@ pub struct Error {
     /// > A Primitive or Structured value that contains additional information about the error.
     /// > This may be omitted.
     /// > The value of this member is defined by the Server (e.g. detailed error information, nested errors etc.).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
 }
 
@@ -308,12 +347,19 @@ pub struct Error {
 #[serde(rename_all = "camelCase")]
 
 pub struct Components {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content_descriptors: Option<BTreeMap<String, ContentDescriptor>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub schemas: Option<BTreeMap<String, Schema>>,
-    pub examples: BTreeMap<String, Example>,
-    // pub links: BTreeMap<String, Link>, // TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub examples: Option<BTreeMap<String, Example>>,
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub links: Option<BTreeMap<String, Link>>, // TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub errors: Option<BTreeMap<String, Error>>,
-    pub example_pairing_objects: BTreeMap<String, ExamplePairing>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub example_pairing_objects: Option<BTreeMap<String, ExamplePairing>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<BTreeMap<String, Tag>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -328,11 +374,14 @@ pub struct Tag {
     /// > The name of the tag.
     pub name: String,
     /// > A short summary of the tag.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
     /// > A verbose explanation for the tag.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > Additional external documentation for this tag.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub external_docs: Option<ExternalDocumentation>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -343,6 +392,7 @@ pub struct Tag {
 pub struct ExternalDocumentation {
     /// > A verbose explanation of the target documentation.
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// > The URL for the target documentation.
     /// > Value MUST be in the format of a URL.
@@ -372,10 +422,7 @@ pub enum ReferenceOr<T> {
 pub struct SpecificationExtensions(pub BTreeMap<String, Value>);
 
 impl<'de> Deserialize<'de> for SpecificationExtensions {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct Visitor;
 
         impl<'de> serde::de::Visitor<'de> for Visitor {
