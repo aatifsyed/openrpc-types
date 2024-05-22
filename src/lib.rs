@@ -8,11 +8,20 @@
 //! > When quoted, the specification will appear as blockquoted text, like so.
 
 use schemars::schema::Schema;
-use semver::Version;
+use semver::{BuildMetadata, Prerelease, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use url::Url;
+
+/// The version of the OpenRPC specification that this library was written against.
+pub const OPEN_RPC_SPECIFICATION_VERSION: Version = Version {
+    major: 1,
+    minor: 3,
+    patch: 2,
+    pre: Prerelease::EMPTY,
+    build: BuildMetadata::EMPTY,
+};
 
 /// > This is the root object of the OpenRPC document.
 /// > The contents of this object represent a whole OpenRPC document.
@@ -295,17 +304,16 @@ pub struct Error {
 /// > All objects defined within the components object will have no effect on the
 /// > API unless they are explicitly referenced from properties outside the components object.
 /// > All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9\.\-_]+$
-// TODO ^^
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 
 pub struct Components {
     pub content_descriptors: Option<BTreeMap<String, ContentDescriptor>>,
     pub schemas: Option<BTreeMap<String, Schema>>,
-    pub examples: BTreeMap<String, Example>, // TODO
+    pub examples: BTreeMap<String, Example>,
     // pub links: BTreeMap<String, Link>, // TODO
     pub errors: Option<BTreeMap<String, Error>>,
-    pub example_pairing_objects: BTreeMap<String, ExamplePairing>, // TODO
+    pub example_pairing_objects: BTreeMap<String, ExamplePairing>,
     pub tags: Option<BTreeMap<String, Tag>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
