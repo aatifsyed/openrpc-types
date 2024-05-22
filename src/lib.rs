@@ -1,5 +1,10 @@
 //! A transcription of types from the [`OpenRPC` Specification](https://spec.open-rpc.org/).
 //!
+//! This library does NOT perform more complicated validation of the spec, including:
+//! - unique method names
+//! - unique error codes
+//! - reference idents
+//!
 //! > When quoted, the specification will appear as blockquoted text, like so.
 
 use schemars::schema::Schema;
@@ -13,6 +18,7 @@ use url::Url;
 /// > The contents of this object represent a whole OpenRPC document.
 /// > How this object is constructed or stored is outside the scope of the OpenRPC Specification.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OpenRPC {
     /// > REQUIRED.
     /// > This string MUST be the semantic version number of the OpenRPC Specification version that the OpenRPC document uses.
@@ -23,6 +29,11 @@ pub struct OpenRPC {
     /// > Provides metadata about the API.
     /// > The metadata MAY be used by tooling as required.
     pub info: Info,
+    /// > An array of Server Objects,
+    /// > which provide connectivity information to a target server.
+    /// > If the servers property is not provided, or is an empty array,
+    /// > the default value would be a Server Object with a url value of `localhost`.
+    pub servers: Option<Vec<Server>>,
     /// > REQUIRED.
     /// > The available methods for the API.
     /// > While it is required, the array may be empty (to handle security filtering, for example).
@@ -30,6 +41,10 @@ pub struct OpenRPC {
     /// > An element to hold various schemas for the specification.
     #[serde(default)]
     pub components: Components,
+    /// > Additional external documentation.
+    pub external_docs: Option<ExternalDocumentation>,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
 }
 
 /// > The object provides metadata about the API.
@@ -37,7 +52,6 @@ pub struct OpenRPC {
 /// > and MAY be presented in editing or documentation generation tools for convenience.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-
 pub struct Info {
     /// > REQUIRED.
     /// > The title of the application.
@@ -88,8 +102,45 @@ pub struct License {
     pub extensions: SpecificationExtensions,
 }
 
-// pub struct Server {} // TODO
-// pub struct ServerVariable {} // TODO
+/// > An object representing a Server.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Server {
+    /// > REQUIRED.
+    /// > A name to be used as the cannonical name for the server.
+    pub name: String,
+    /// > REQUIRED.
+    /// > A URL to the target host.
+    /// > This URL supports Server Variables and MAY be relative,
+    /// > to indicate that the host location is relative to the location where the OpenRPC document is being served.
+    /// > Server Variables are passed into the Runtime Expression to produce a server URL.
+    pub url: String,
+    /// > A short summary of what the server is.
+    pub summary: Option<String>,
+    /// > An optional string describing the host designated by the URL.
+    /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    pub description: Option<String>,
+    /// > A map between a variable name and its value.
+    /// > The value is passed into the Runtime Expression to produce a server URL.
+    pub variables: Option<BTreeMap<String, ServerVariable>>,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
+}
+/// > An object representing a Server Variable for server URL template substitution.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ServerVariable {
+    /// > An enumeration of string values to be used if the substitution options are from a limited set.
+    pub r#enum: Option<Vec<String>>,
+    /// > REQUIRED.
+    /// > The default value to use for substitution,
+    /// > which SHALL be sent if an alternate value is not supplied.
+    /// > Note this behavior is different than the Schema Object’s treatment of default values,
+    /// > because in those cases parameter values are optional.
+    pub default: String,
+    /// > An optional description for the server variable. GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    pub description: Option<String>,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
+}
 
 /// > Describes the interface for the given method name.
 /// > The method name is used as the method field of the JSON-RPC body.
@@ -125,13 +176,18 @@ pub struct Method {
     /// > Consumers SHOULD refrain from usage of the declared method.
     /// > Default value is `false`.
     pub deprecated: Option<bool>,
-    // pub servers: Option<Vec<Server>>, // TODO
+    /// > An alternative servers array to service this method.
+    /// > If an alternative servers array is specified at the Root level,
+    /// > it will be overridden by this value.
+    pub servers: Option<Vec<Server>>,
     /// > A list of custom application defined errors that MAY be returned.
     /// > The Errors MUST have unique error codes.
     pub errors: Option<Vec<ReferenceOr<Error>>>,
-    // pub links: Option<Vec<ReferenceOr<Link>>>, // TODO
+    // /// > A list of possible links from this method call.
+    // pub links: Option<Vec<ReferenceOr<Link>>>,
     pub param_structure: Option<ParamStructure>,
-    // pub examples: Option<Vec<ReferenceOr<ExamplePairing>>>, // TODO
+    /// > Array of Example Pairing Objects where each example includes a valid params-to-result Content Descriptor pairing.
+    pub examples: Option<Vec<ReferenceOr<ExamplePairing>>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
 }
@@ -167,8 +223,53 @@ pub struct ContentDescriptor {
     pub extensions: SpecificationExtensions,
 }
 
-// pub struct ExamplePairing {} // TODO
-// pub struct Example {} // TODO
+/// > The Example Pairing object consists of a set of example params and result.
+/// > The result is what you can expect from the JSON-RPC service given the exact params.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExamplePairing {
+    /// > REQUIRED Name for the example pairing.
+    pub name: String,
+    /// > A verbose explanation of the example pairing.
+    pub description: Option<String>,
+    /// > Short description for the example pairing.
+    pub summary: Option<String>,
+    /// > REQUIRED Example parameters.
+    pub params: Vec<ReferenceOr<Example>>,
+    /// > Example result.
+    /// > When undefined, the example pairing represents usage of the method as a notification.
+    pub result: Option<ReferenceOr<Example>>,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
+}
+
+/// > The Example object is an object that defines an example that is intended to match the schema of a given Content Descriptor.
+/// >
+/// > In all cases, the example value is expected to be compatible with the type schema of its associated value.
+/// > Tooling implementations MAY choose to validate compatibility automatically,
+/// > and reject the example value(s) if incompatible.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Example {
+    /// Cannonical name of the example.
+    pub name: Option<String>,
+    /// Short description for the example.
+    pub summary: Option<String>,
+    /// > A verbose explanation of the example.
+    /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
+    pub description: Option<String>,
+    /// > Embedded literal example.
+    /// > The value field and externalValue field are mutually exclusive.
+    /// > To represent examples of media types that cannot naturally represented in JSON,
+    /// > use a string value to contain the example, escaping where necessary.
+    pub value: Option<Value>,
+    /// > A URL that points to the literal example.
+    /// > This provides the capability to reference examples that cannot easily be included in JSON documents.
+    /// > The value field and externalValue field are mutually exclusive.
+    pub external_value: Option<String>,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
+}
+
 // pub struct Link {} // TODO
 
 /// > Defines an application level error.
@@ -201,10 +302,10 @@ pub struct Error {
 pub struct Components {
     pub content_descriptors: Option<BTreeMap<String, ContentDescriptor>>,
     pub schemas: Option<BTreeMap<String, Schema>>,
-    // pub examples: BTreeMap<String, Example>, // TODO
+    pub examples: BTreeMap<String, Example>, // TODO
     // pub links: BTreeMap<String, Link>, // TODO
     pub errors: Option<BTreeMap<String, Error>>,
-    // pub example_pairing_objects: BTreeMap<String, ExamplePairing>, // TODO
+    pub example_pairing_objects: BTreeMap<String, ExamplePairing>, // TODO
     pub tags: Option<BTreeMap<String, Tag>>,
     #[serde(flatten)]
     pub extensions: SpecificationExtensions,
@@ -319,7 +420,7 @@ pub enum ParamStructure {
 }
 
 #[derive(Serialize, Deserialize)]
-#[serde(untagged, expecting = "a reference or an item")]
+#[serde(untagged, expecting = "a reference or an inline item")]
 enum _ReferenceOr<T> {
     Reference {
         #[serde(rename = "$ref")]
@@ -329,7 +430,7 @@ enum _ReferenceOr<T> {
 }
 
 impl<T> ReferenceOr<T> {
-    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> ReferenceOr<U> {
+    pub fn map_item<U>(self, f: impl FnOnce(T) -> U) -> ReferenceOr<U> {
         match self {
             ReferenceOr::Reference(it) => ReferenceOr::Reference(it),
             ReferenceOr::Item(it) => ReferenceOr::Item(f(it)),
@@ -338,10 +439,7 @@ impl<T> ReferenceOr<T> {
 }
 
 impl<T: Serialize> Serialize for ReferenceOr<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
             ReferenceOr::Reference(it) => _ReferenceOr::Reference {
                 reference: it.clone(),
@@ -353,10 +451,7 @@ impl<T: Serialize> Serialize for ReferenceOr<T> {
 }
 
 impl<'de, T: Deserialize<'de>> Deserialize<'de> for ReferenceOr<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         _ReferenceOr::deserialize(deserializer).map(|it| match it {
             _ReferenceOr::Reference { reference } => ReferenceOr::Reference(reference),
             _ReferenceOr::Item(it) => ReferenceOr::Item(it),
