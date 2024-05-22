@@ -21,4 +21,4 @@ url = { version = "2.5.0", features = ["serde"] }
 serde_path_to_error = "0.1.16"
 
 [workspace]
-members = []
+members = ["gen"]
