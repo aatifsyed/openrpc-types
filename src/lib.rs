@@ -60,10 +60,24 @@ pub struct OpenRPC {
     pub extensions: SpecificationExtensions,
 }
 
+impl Default for OpenRPC {
+    fn default() -> Self {
+        Self {
+            openrpc: OPEN_RPC_SPECIFICATION_VERSION,
+            info: Default::default(),
+            servers: Default::default(),
+            methods: Default::default(),
+            components: Default::default(),
+            external_docs: Default::default(),
+            extensions: Default::default(),
+        }
+    }
+}
+
 /// > The object provides metadata about the API.
 /// > The metadata MAY be used by the clients if needed,
 /// > and MAY be presented in editing or documentation generation tools for convenience.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {
     /// > REQUIRED.
@@ -92,7 +106,7 @@ pub struct Info {
 }
 
 /// > Contact information for the exposed API.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Contact {
     /// > The identifying name of the contact person/organization.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,7 +124,7 @@ pub struct Contact {
 }
 
 /// > License information for the exposed API.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct License {
     /// > REQUIRED.
     /// > The license name used for the API.
@@ -124,7 +138,7 @@ pub struct License {
 }
 
 /// > An object representing a Server.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Server {
     /// > REQUIRED.
     /// > A name to be used as the cannonical name for the server.
@@ -150,7 +164,7 @@ pub struct Server {
     pub extensions: SpecificationExtensions,
 }
 /// > An object representing a Server Variable for server URL template substitution.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ServerVariable {
     /// > An enumeration of string values to be used if the substitution options are from a limited set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -263,9 +277,23 @@ pub struct ContentDescriptor {
     pub extensions: SpecificationExtensions,
 }
 
+impl Default for ContentDescriptor {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            summary: Default::default(),
+            description: Default::default(),
+            required: Default::default(),
+            schema: Schema::Bool(false),
+            deprecated: Default::default(),
+            extensions: Default::default(),
+        }
+    }
+}
+
 /// > The Example Pairing object consists of a set of example params and result.
 /// > The result is what you can expect from the JSON-RPC service given the exact params.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ExamplePairing {
     /// > REQUIRED Name for the example pairing.
     pub name: String,
@@ -290,7 +318,7 @@ pub struct ExamplePairing {
 /// > In all cases, the example value is expected to be compatible with the type schema of its associated value.
 /// > Tooling implementations MAY choose to validate compatibility automatically,
 /// > and reject the example value(s) if incompatible.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Example {
     /// Cannonical name of the example.
