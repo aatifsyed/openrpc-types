@@ -1,6 +1,6 @@
 [package]
 name = "openrpc-types"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 description = "A transcription of types from the OpenRPC Specification"
 license = "MIT OR Apache-2.0"
