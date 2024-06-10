@@ -114,7 +114,6 @@ version = "0.3.1"
 dependencies = [
  "expect-test",
  "proc-macro2",
- "quote",
  "regex",
  "schemars",
  "semver",

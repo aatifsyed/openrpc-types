@@ -15,7 +15,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use url::Url;
+
+pub use resolver::{resolve_within, BrokenReference};
+
 pub mod resolved;
+mod resolver;
 
 /// The version of the OpenRPC specification that this library was written against.
 pub const OPEN_RPC_SPECIFICATION_VERSION: Version = Version {
@@ -541,6 +545,20 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for ReferenceOr<T> {
             _ReferenceOr::Reference { reference } => ReferenceOr::Reference(reference),
             _ReferenceOr::Item(it) => ReferenceOr::Item(it),
         })
+    }
+}
+
+impl Default for resolved::OpenRPC {
+    fn default() -> Self {
+        Self {
+            openrpc: OPEN_RPC_SPECIFICATION_VERSION,
+            info: Default::default(),
+            servers: Default::default(),
+            methods: Default::default(),
+            components: Default::default(),
+            external_docs: Default::default(),
+            extensions: Default::default(),
+        }
     }
 }
 
