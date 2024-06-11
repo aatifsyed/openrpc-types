@@ -6,7 +6,7 @@ use crate::{
     ReferenceOr, Tag,
 };
 
-/// A broken [`ReferenceOr`] was found.
+/// A broken [`ReferenceOr::Reference`] was found.
 ///
 /// Returned from [`resolve_within`].
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -19,11 +19,16 @@ impl fmt::Display for BrokenReference {
     }
 }
 
+impl std::error::Error for BrokenReference {}
+
 /// Try and resolve all [`ReferenceOr`]s in the document by looking up
 /// references in [`OpenRPC::components`].
 ///
 /// Returns a [`BrokenReference`] on the first [`ReferenceOr::Reference`] with no
 /// corresponding entry in [`OpenRPC::components`].
+///
+/// Note that unlike [`schemars::schema::SchemaObject::reference`]s, OpenRPC's
+/// references are acyclic, so this is guaranteed to terminate.
 pub fn resolve_within(openrpc: OpenRPC) -> Result<resolved::OpenRPC, BrokenReference> {
     self::openrpc(openrpc).map_err(BrokenReference)
 }
