@@ -323,7 +323,7 @@ pub struct ExamplePairing {
 /// > In all cases, the example value is expected to be compatible with the type schema of its associated value.
 /// > Tooling implementations MAY choose to validate compatibility automatically,
 /// > and reject the example value(s) if incompatible.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Example {
     /// Cannonical name of the example.
@@ -336,19 +336,36 @@ pub struct Example {
     /// > GitHub Flavored Markdown syntax MAY be used for rich text representation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(flatten)]
+    pub value: ExampleValue,
+    #[serde(flatten)]
+    pub extensions: SpecificationExtensions,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub enum ExampleValue {
+    /// > A URL that points to the literal example.
+    /// > This provides the capability to reference examples that cannot easily be included in JSON documents.
+    /// > The value field and externalValue field are mutually exclusive.
+    #[serde(rename = "externalValue")]
+    External(String),
     /// > Embedded literal example.
     /// > The value field and externalValue field are mutually exclusive.
     /// > To represent examples of media types that cannot naturally represented in JSON,
     /// > use a string value to contain the example, escaping where necessary.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub value: Option<Value>,
-    /// > A URL that points to the literal example.
-    /// > This provides the capability to reference examples that cannot easily be included in JSON documents.
-    /// > The value field and externalValue field are mutually exclusive.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub external_value: Option<String>,
-    #[serde(flatten)]
-    pub extensions: SpecificationExtensions,
+    #[serde(rename = "value")]
+    Embedded(Value),
+}
+
+#[test]
+fn example() {
+    let json = serde_json::json!({
+        "name": "foo",
+        "value": { "foo": "bar" },
+        "x-tension": "extension"
+    });
+    let actual = serde_json::from_value::<Example>(json.clone()).unwrap();
+    assert_eq!(serde_json::to_value(actual).unwrap(), json);
 }
 
 // pub struct Link {} // TODO
