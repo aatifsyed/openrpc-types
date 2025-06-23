@@ -9,7 +9,12 @@
 //!
 //! > When quoted, the specification will appear as blockquoted text, like so.
 
-use schemars::schema::Schema;
+#[cfg(feature = "schemars08")]
+use schemars08::schema::Schema;
+#[cfg(feature = "schemars09")]
+use schemars09::Schema;
+#[cfg(feature = "schemars1")]
+use schemars1::Schema;
 use semver::{BuildMetadata, Prerelease, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -20,6 +25,11 @@ pub use resolver::{resolve_within, BrokenReference};
 
 pub mod resolved;
 mod resolver;
+
+#[cfg(not(any(feature = "schemars08", feature = "schemars09", feature = "schemars1")))]
+compile_error!(
+    "Any of the features `schemars08`, `schemars09` or `schemars1` must be enabled for this crate."
+);
 
 /// The version of the OpenRPC specification that this library was written against.
 pub const OPEN_RPC_SPECIFICATION_VERSION: Version = Version {
@@ -289,7 +299,12 @@ impl Default for ContentDescriptor {
             summary: Default::default(),
             description: Default::default(),
             required: Default::default(),
+            #[cfg(feature = "schemars08")]
             schema: Schema::Bool(false),
+            #[cfg(feature = "schemars09")]
+            schema: schemars09::json_schema!(false),
+            #[cfg(feature = "schemars1")]
+            schema: schemars1::json_schema!(false),
             deprecated: Default::default(),
             extensions: Default::default(),
         }
@@ -396,7 +411,6 @@ pub struct Error {
 /// > All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9\.\-_]+$
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-
 pub struct Components {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_descriptors: Option<BTreeMap<String, ContentDescriptor>>,
@@ -581,6 +595,7 @@ impl Default for resolved::OpenRPC {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use regex::Regex;
     use std::borrow::Cow;
     use syn::{spanned::Spanned, Item};
@@ -616,5 +631,18 @@ use serde::{Deserialize, Serialize};
             }
         }
         expect_test::expect_file!["./resolved.rs"].assert_eq(&rewritten);
+    }
+
+    #[test]
+    fn test_default_content_desc_ser() {
+        let desc = ContentDescriptor::default();
+        println!("{}", serde_json::to_string_pretty(&desc).unwrap());
+        assert_eq!(
+            serde_json::to_value(&desc).unwrap(),
+            serde_json::json!({
+              "name": "",
+              "schema": false
+            })
+        );
     }
 }
