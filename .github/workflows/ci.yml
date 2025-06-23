@@ -1,0 +1,32 @@
+name: CI
+
+# Cancel workflow if there is a new change to the branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+on:
+  workflow_dispatch:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: CI checks
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        include:
+          - features: schemars08
+          - features: schemars09
+          - features: schemars1
+    steps:
+        - uses: actions/checkout@v4
+        - run: cargo fmt --check
+        - run: cargo clippy --features ${{ matrix.features }} --all-targets -- --deny warnings
+        - run: cargo test --features ${{ matrix.features }}
