@@ -9,12 +9,7 @@
 //!
 //! > When quoted, the specification will appear as blockquoted text, like so.
 
-#[cfg(feature = "schemars08")]
-use schemars08::schema::Schema;
-#[cfg(feature = "schemars09")]
-use schemars09::Schema;
-#[cfg(feature = "schemars1")]
-use schemars1::Schema;
+use schemars::Schema;
 use semver::{BuildMetadata, Prerelease, Version};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -25,11 +20,6 @@ pub use resolver::{resolve_within, BrokenReference};
 
 pub mod resolved;
 mod resolver;
-
-#[cfg(not(any(feature = "schemars08", feature = "schemars09", feature = "schemars1")))]
-compile_error!(
-    "Any of the features `schemars08`, `schemars09` or `schemars1` must be enabled for this crate."
-);
 
 /// The version of the OpenRPC specification that this library was written against.
 pub const OPEN_RPC_SPECIFICATION_VERSION: Version = Version {
@@ -299,12 +289,7 @@ impl Default for ContentDescriptor {
             summary: Default::default(),
             description: Default::default(),
             required: Default::default(),
-            #[cfg(feature = "schemars08")]
-            schema: Schema::Bool(false),
-            #[cfg(feature = "schemars09")]
-            schema: schemars09::json_schema!(false),
-            #[cfg(feature = "schemars1")]
-            schema: schemars1::json_schema!(false),
+            schema: schemars::json_schema!(false),
             deprecated: Default::default(),
             extensions: Default::default(),
         }

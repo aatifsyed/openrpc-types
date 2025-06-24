@@ -19,14 +19,8 @@ jobs:
   ci:
     name: CI checks
     runs-on: ubuntu-24.04-arm
-    strategy:
-      matrix:
-        include:
-          - features: schemars08
-          - features: schemars09
-          - features: schemars1
     steps:
         - uses: actions/checkout@v4
         - run: cargo fmt --check
-        - run: cargo clippy --features ${{ matrix.features }} --all-targets -- --deny warnings
-        - run: cargo test --features ${{ matrix.features }}
+        - run: cargo clippy --all-features --all-targets -- --deny warnings
+        - run: cargo test --all-features
