@@ -1,6 +1,6 @@
 [package]
 name = "openrpc-types"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "A transcription of types from the OpenRPC Specification"
 license = "MIT OR Apache-2.0"
@@ -11,7 +11,7 @@ categories = ["development-tools", "network-programming", "web-programming"]
 keywords = ["openrpc", "api"]
 
 [dependencies]
-schemars = "0.8.16"
+schemars = { version = "1", default-features = false}
 semver = { version = "1.0.23", features = ["serde"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.117"
@@ -25,7 +25,6 @@ proc-macro2 = { version = "1.0.85", default-features = false, features = [
 regex = "1.10.5"
 serde_path_to_error = "0.1.16"
 syn = { version = "2.0.66", features = ["full"] }
-
 
 [workspace]
 members = ["gen"]
